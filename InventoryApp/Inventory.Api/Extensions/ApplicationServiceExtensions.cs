@@ -24,6 +24,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<Inventory.Core.Interfaces.Services.IAuthService, Inventory.Core.Services.AuthService>();
         services.AddScoped<Inventory.Core.Interfaces.Services.IUserService, Inventory.Core.Services.UserService>();
         services.AddScoped<Inventory.Core.Interfaces.Services.ICategoryService, Inventory.Core.Services.CategoryService>();
+        services.AddScoped<Inventory.Core.Interfaces.Services.IUnitService, Inventory.Core.Services.UnitService>();
 
         return services;
     }
