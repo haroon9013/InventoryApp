@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inventory.Infrastructure", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inventory.Api", "Inventory.Api\Inventory.Api.csproj", "{70991F23-6676-4BBE-89BD-5DD5466525DD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inventory.Tests", "Inventory.Tests\Inventory.Tests.csproj", "{17AD11A9-A6EE-43FF-ADC3-CE0D56C27030}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{70991F23-6676-4BBE-89BD-5DD5466525DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70991F23-6676-4BBE-89BD-5DD5466525DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70991F23-6676-4BBE-89BD-5DD5466525DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17AD11A9-A6EE-43FF-ADC3-CE0D56C27030}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17AD11A9-A6EE-43FF-ADC3-CE0D56C27030}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17AD11A9-A6EE-43FF-ADC3-CE0D56C27030}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17AD11A9-A6EE-43FF-ADC3-CE0D56C27030}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

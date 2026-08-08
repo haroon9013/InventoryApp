@@ -1,4 +1,6 @@
 using AutoMapper;
+using Inventory.Core.DTOs.Users;
+using Inventory.Core.Entities;
 
 namespace Inventory.Core.Mapping;
 
@@ -10,7 +12,7 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        // Profiles will be added here as each module is implemented.
-        // Example: CreateMap<Product, ProductDto>().ReverseMap();
+        CreateMap<User, UserResponse>()
+            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : string.Empty));
     }
 }

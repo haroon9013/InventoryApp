@@ -1,5 +1,6 @@
 using Inventory.Api.Extensions;
 using Inventory.Api.Middleware;
+using Inventory.Infrastructure.Data;
 using Inventory.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,9 @@ builder.Services.AddApplicationServices();
 // ── Infrastructure (EF Core, repositories) ───────────────────────────────────
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// ── JWT Authentication ───────────────────────────────────────────────────────
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
 // ── Swagger / OpenAPI ────────────────────────────────────────────────────────
 builder.Services.AddSwaggerWithJwt();
 
@@ -36,6 +40,9 @@ var app = builder.Build();
 // ── Global exception handler (must be first) ─────────────────────────────────
 app.UseMiddleware<ExceptionMiddleware>();
 
+// ── Database & Migrations Initializer ────────────────────────────────────────
+await DbInitializer.InitializeAsync(app.Services);
+
 // ── Swagger UI ───────────────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
@@ -50,9 +57,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
-// ── Auth middleware placeholders (activated in the Authentication module) ─────
-// app.UseAuthentication();
-// app.UseAuthorization();
+// ── Auth middleware ──────────────────────────────────────────────────────────
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

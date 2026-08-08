@@ -17,9 +17,12 @@ public static class ApplicationServiceExtensions
         services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
         // FluentValidation — scans Core assembly for IValidator<T> implementations.
-        // Registered in DI for manual injection; pipeline integration is added via
-        // FluentValidation.AspNetCore in the controller configuration.
         services.AddValidatorsFromAssembly(typeof(MappingProfile).Assembly);
+
+        // Application Modules
+        services.AddScoped<Inventory.Core.Interfaces.Services.IJwtService, Inventory.Infrastructure.Services.JwtService>();
+        services.AddScoped<Inventory.Core.Interfaces.Services.IAuthService, Inventory.Core.Services.AuthService>();
+        services.AddScoped<Inventory.Core.Interfaces.Services.IUserService, Inventory.Core.Services.UserService>();
 
         return services;
     }
