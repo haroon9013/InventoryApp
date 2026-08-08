@@ -1,4 +1,5 @@
 using AutoMapper;
+using Inventory.Core.DTOs.Categories;
 using Inventory.Core.DTOs.Users;
 using Inventory.Core.Entities;
 
@@ -14,5 +15,7 @@ public class MappingProfile : Profile
     {
         CreateMap<User, UserResponse>()
             .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : string.Empty));
+
+        CreateMap<Category, CategoryResponse>();
     }
 }
