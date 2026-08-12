@@ -22,9 +22,11 @@ public sealed class UnitsController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<UnitResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll([FromQuery] bool includeInactive = false, CancellationToken ct = default)
     {
-        var result = await _unitService.GetAllAsync(ct);
+        var isAdmin = User.IsInRole("Admin");
+        var actualIncludeInactive = isAdmin && includeInactive;
+        var result = await _unitService.GetAllAsync(actualIncludeInactive, ct);
         return Ok(ApiResponse<IReadOnlyList<UnitResponse>>.Ok(result.Value!));
     }
 
@@ -34,7 +36,8 @@ public sealed class UnitsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken ct)
     {
-        var result = await _unitService.GetByIdAsync(id, ct);
+        var isAdmin = User.IsInRole("Admin");
+        var result = await _unitService.GetByIdAsync(id, isAdmin, ct);
         if (!result.IsSuccess)
         {
             return NotFound(ApiResponse.Fail(result.Error ?? "Unit not found."));

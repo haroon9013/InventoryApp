@@ -242,4 +242,41 @@ public class UnitServiceTests
         Assert.False(updateValidationResult.IsValid);
         Assert.Contains(updateValidationResult.Errors, e => e.PropertyName == "UnitName");
     }
+
+    [Fact]
+    internal async Task GetUnits_Filtering_WorksAsExpected()
+    {
+        // Arrange
+        using var context = CreateContext();
+        await context.Units.AddRangeAsync(new[]
+        {
+            new Unit { Id = 10, UnitName = "ActiveUnit", ShortName = "AU", IsActive = true },
+            new Unit { Id = 11, UnitName = "InactiveUnit", ShortName = "IU", IsActive = false }
+        });
+        await context.SaveChangesAsync();
+        var service = new UnitService(context, _mapper);
+
+        // Act & Assert 1: Don't include inactive (default)
+        var resultActiveOnly = await service.GetAllAsync(includeInactive: false);
+        Assert.True(resultActiveOnly.IsSuccess);
+        Assert.Single(resultActiveOnly.Value!);
+        Assert.Equal("ActiveUnit", resultActiveOnly.Value![0].UnitName);
+
+        // Act & Assert 2: Include inactive
+        var resultAll = await service.GetAllAsync(includeInactive: true);
+        Assert.True(resultAll.IsSuccess);
+        Assert.Equal(2, resultAll.Value!.Count);
+
+        // Act & Assert 3: GetById active
+        var activeGet = await service.GetByIdAsync(10, includeInactive: false);
+        Assert.True(activeGet.IsSuccess);
+
+        // Act & Assert 4: GetById inactive with includeInactive = false (should fail)
+        var inactiveGetFail = await service.GetByIdAsync(11, includeInactive: false);
+        Assert.False(inactiveGetFail.IsSuccess);
+
+        // Act & Assert 5: GetById inactive with includeInactive = true (should succeed)
+        var inactiveGetSucceed = await service.GetByIdAsync(11, includeInactive: true);
+        Assert.True(inactiveGetSucceed.IsSuccess);
+    }
 }

@@ -220,4 +220,41 @@ public class CategoryServiceTests
         Assert.False(updateValidationResult.IsValid);
         Assert.Contains(updateValidationResult.Errors, e => e.PropertyName == "CategoryName");
     }
+
+    [Fact]
+    internal async Task GetCategories_Filtering_WorksAsExpected()
+    {
+        // Arrange
+        using var context = CreateContext();
+        await context.Categories.AddRangeAsync(new[]
+        {
+            new Category { Id = 10, CategoryName = "ActiveCategory", IsActive = true },
+            new Category { Id = 11, CategoryName = "InactiveCategory", IsActive = false }
+        });
+        await context.SaveChangesAsync();
+        var service = new CategoryService(context, _mapper);
+
+        // Act & Assert 1: Don't include inactive (default)
+        var resultActiveOnly = await service.GetAllAsync(includeInactive: false);
+        Assert.True(resultActiveOnly.IsSuccess);
+        Assert.Single(resultActiveOnly.Value!);
+        Assert.Equal("ActiveCategory", resultActiveOnly.Value![0].CategoryName);
+
+        // Act & Assert 2: Include inactive
+        var resultAll = await service.GetAllAsync(includeInactive: true);
+        Assert.True(resultAll.IsSuccess);
+        Assert.Equal(2, resultAll.Value!.Count);
+
+        // Act & Assert 3: GetById active
+        var activeGet = await service.GetByIdAsync(10, includeInactive: false);
+        Assert.True(activeGet.IsSuccess);
+
+        // Act & Assert 4: GetById inactive with includeInactive = false (should fail)
+        var inactiveGetFail = await service.GetByIdAsync(11, includeInactive: false);
+        Assert.False(inactiveGetFail.IsSuccess);
+
+        // Act & Assert 5: GetById inactive with includeInactive = true (should succeed)
+        var inactiveGetSucceed = await service.GetByIdAsync(11, includeInactive: true);
+        Assert.True(inactiveGetSucceed.IsSuccess);
+    }
 }

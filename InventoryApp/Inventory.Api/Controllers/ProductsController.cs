@@ -1,4 +1,4 @@
-using Inventory.Core.DTOs.Categories;
+using Inventory.Core.DTOs.Products;
 using Inventory.Core.Interfaces.Services;
 using Inventory.Shared.Common;
 using Microsoft.AspNetCore.Authorization;
@@ -8,94 +8,94 @@ using System.Security.Claims;
 namespace Inventory.Api.Controllers;
 
 [ApiController]
-[Route("api/categories")]
+[Route("api/products")]
 [Authorize]
-public sealed class CategoriesController : ControllerBase
+public sealed class ProductsController : ControllerBase
 {
-    private readonly ICategoryService _categoryService;
+    private readonly IProductService _productService;
 
-    public CategoriesController(ICategoryService categoryService)
+    public ProductsController(IProductService productService)
     {
-        _categoryService = categoryService;
+        _productService = productService;
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<CategoryResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<ProductResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAll([FromQuery] bool includeInactive = false, CancellationToken ct = default)
     {
         var isAdmin = User.IsInRole("Admin");
         var actualIncludeInactive = isAdmin && includeInactive;
-        var result = await _categoryService.GetAllAsync(actualIncludeInactive, ct);
-        return Ok(ApiResponse<IReadOnlyList<CategoryResponse>>.Ok(result.Value!));
+        var result = await _productService.GetAllAsync(actualIncludeInactive, ct);
+        return Ok(ApiResponse<IReadOnlyList<ProductResponse>>.Ok(result.Value!));
     }
 
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(ApiResponse<CategoryResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ProductResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken ct)
     {
         var isAdmin = User.IsInRole("Admin");
-        var result = await _categoryService.GetByIdAsync(id, isAdmin, ct);
+        var result = await _productService.GetByIdAsync(id, isAdmin, ct);
         if (!result.IsSuccess)
         {
-            return NotFound(ApiResponse.Fail(result.Error ?? "Category not found."));
+            return NotFound(ApiResponse.Fail(result.Error ?? "Product not found."));
         }
-        return Ok(ApiResponse<CategoryResponse>.Ok(result.Value!));
+        return Ok(ApiResponse<ProductResponse>.Ok(result.Value!));
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(ApiResponse<CategoryResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<ProductResponse>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> Create([FromBody] CategoryCreateRequest request, CancellationToken ct)
+    public async Task<IActionResult> Create([FromBody] ProductCreateRequest request, CancellationToken ct)
     {
         var currentUserId = GetCurrentUserId();
-        var result = await _categoryService.CreateAsync(request, currentUserId, ct);
+        var result = await _productService.CreateAsync(request, currentUserId, ct);
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "An active category with this name already exists.")
+            if (result.Error == "A product with this product code already exists.")
             {
                 return Conflict(ApiResponse.Fail(result.Error));
             }
-            return BadRequest(ApiResponse.Fail(result.Error ?? "Failed to create category."));
+            return BadRequest(ApiResponse.Fail(result.Error ?? "Failed to create product."));
         }
 
-        return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, ApiResponse<CategoryResponse>.Ok(result.Value));
+        return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, ApiResponse<ProductResponse>.Ok(result.Value));
     }
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(ApiResponse<CategoryResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ProductResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CategoryUpdateRequest request, CancellationToken ct)
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] ProductUpdateRequest request, CancellationToken ct)
     {
         var currentUserId = GetCurrentUserId();
-        var result = await _categoryService.UpdateAsync(id, request, currentUserId, ct);
+        var result = await _productService.UpdateAsync(id, request, currentUserId, ct);
 
         if (!result.IsSuccess)
         {
-            if (result.Error == "Category not found.")
+            if (result.Error == "Product not found.")
             {
                 return NotFound(ApiResponse.Fail(result.Error));
             }
-            if (result.Error == "An active category with this name already exists.")
+            if (result.Error == "A product with this product code already exists.")
             {
                 return Conflict(ApiResponse.Fail(result.Error));
             }
-            return BadRequest(ApiResponse.Fail(result.Error ?? "Failed to update category."));
+            return BadRequest(ApiResponse.Fail(result.Error ?? "Failed to update product."));
         }
 
-        return Ok(ApiResponse<CategoryResponse>.Ok(result.Value!));
+        return Ok(ApiResponse<ProductResponse>.Ok(result.Value!));
     }
 
     [HttpDelete("{id:int}")]
@@ -107,14 +107,14 @@ public sealed class CategoriesController : ControllerBase
     public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct)
     {
         var currentUserId = GetCurrentUserId();
-        var result = await _categoryService.SoftDeleteAsync(id, currentUserId, ct);
+        var result = await _productService.SoftDeleteAsync(id, currentUserId, ct);
 
         if (!result.IsSuccess)
         {
-            return NotFound(ApiResponse.Fail(result.Error ?? "Category not found."));
+            return NotFound(ApiResponse.Fail(result.Error ?? "Product not found."));
         }
 
-        return Ok(ApiResponse.Ok("Category successfully deactivated."));
+        return Ok(ApiResponse.Ok("Product successfully deactivated."));
     }
 
     private int GetCurrentUserId()

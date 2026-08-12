@@ -19,9 +19,16 @@ public sealed class UnitService : IUnitService
         _mapper = mapper;
     }
 
-    public async Task<Result<IReadOnlyList<UnitResponse>>> GetAllAsync(CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<UnitResponse>>> GetAllAsync(bool includeInactive = false, CancellationToken ct = default)
     {
-        var units = await _context.Units
+        var query = _context.Units.AsQueryable();
+
+        if (!includeInactive)
+        {
+            query = query.Where(u => u.IsActive);
+        }
+
+        var units = await query
             .OrderBy(u => u.UnitName)
             .ToListAsync(ct);
 
@@ -29,10 +36,10 @@ public sealed class UnitService : IUnitService
         return Result<IReadOnlyList<UnitResponse>>.Success(response);
     }
 
-    public async Task<Result<UnitResponse>> GetByIdAsync(int id, CancellationToken ct = default)
+    public async Task<Result<UnitResponse>> GetByIdAsync(int id, bool includeInactive = false, CancellationToken ct = default)
     {
         var unit = await _context.Units.SingleOrDefaultAsync(u => u.Id == id, ct);
-        if (unit == null)
+        if (unit == null || (!includeInactive && !unit.IsActive))
         {
             return Result<UnitResponse>.Failure("Unit not found.");
         }

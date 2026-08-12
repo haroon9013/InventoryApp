@@ -19,9 +19,16 @@ public sealed class CategoryService : ICategoryService
         _mapper = mapper;
     }
 
-    public async Task<Result<IReadOnlyList<CategoryResponse>>> GetAllAsync(CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<CategoryResponse>>> GetAllAsync(bool includeInactive = false, CancellationToken ct = default)
     {
-        var categories = await _context.Categories
+        var query = _context.Categories.AsQueryable();
+
+        if (!includeInactive)
+        {
+            query = query.Where(c => c.IsActive);
+        }
+
+        var categories = await query
             .OrderBy(c => c.CategoryName)
             .ToListAsync(ct);
 
@@ -29,10 +36,10 @@ public sealed class CategoryService : ICategoryService
         return Result<IReadOnlyList<CategoryResponse>>.Success(response);
     }
 
-    public async Task<Result<CategoryResponse>> GetByIdAsync(int id, CancellationToken ct = default)
+    public async Task<Result<CategoryResponse>> GetByIdAsync(int id, bool includeInactive = false, CancellationToken ct = default)
     {
         var category = await _context.Categories.SingleOrDefaultAsync(c => c.Id == id, ct);
-        if (category == null)
+        if (category == null || (!includeInactive && !category.IsActive))
         {
             return Result<CategoryResponse>.Failure("Category not found.");
         }
